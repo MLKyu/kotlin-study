@@ -1,0 +1,27 @@
+// Function literals with receiver
+class RestHelper<T>(val request: BaseRequest<T>) {
+
+    var success: ((T) -> Unit)? = null
+    var error: ((String) -> Unit)? = null
+
+    fun call(block: RestHelper<T>.() -> Unit) {
+        block.invoke(this)
+        success?.apply { request.onDataReceived(this) }
+        error?.apply { request.onError(this) }
+        request.call()
+    }
+
+    fun success(block: (T) -> Unit) {
+        success = block
+    }
+
+    fun error(block: (String) -> Unit) {
+        error = block
+    }
+
+    companion object {
+        fun getSimilarTracks(trackId: Long, size: Int): RestHelper<TrackListVo> {
+            return RestHelper(TrackManager.getInstance().getSimilarTracks(trackId, size))
+        }
+    }
+}
